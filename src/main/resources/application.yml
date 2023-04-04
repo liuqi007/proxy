@@ -1,0 +1,7 @@
+server:
+  port: 7777
+  servlet:
+    context-path: /proxy
+spring:
+  profiles:
+    active: @profileActive@
