@@ -10,6 +10,8 @@ import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.UnknownHostException;
+
 @RestController
 @RequestMapping("/machine")
 public class MachineController {
@@ -17,14 +19,15 @@ public class MachineController {
     @Autowired
     MachineService machineService;
 
-    @PostMapping(value = "/update")
-    public CommonResult update(@RequestBody MachineReq req) {
-        return null;
+    @PostMapping(value = "/upgrade")
+    public CommonResult upgrade(@RequestBody MachineReq req) throws Exception {
+        machineService.upgrade(req.getCallback(), req.getDownloaUrl());
+        return CommonResult.success();
     }
 
     @GetMapping(value = "/restart")
-    public CommonResult restart() {
-        machineService.startJmeter();
+    public CommonResult restart(@RequestBody MachineReq req) throws UnknownHostException {
+        machineService.doRestart(req.getCallback());
         return CommonResult.success();
     }
 
