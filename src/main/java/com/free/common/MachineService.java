@@ -5,6 +5,7 @@ import cn.hutool.http.HttpResponse;
 import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
 import com.free.common.utils.ExecUtil;
+import com.free.common.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -119,6 +120,7 @@ public class MachineService {
     public void upgrade(String callback, String downloaUrl) throws Exception {
         killJmeter();
         downloadJmeter(downloaUrl);
+        doRestart(callback);
     }
 
     private void downloadJmeter(String downloaUrl) throws Exception {
@@ -129,19 +131,19 @@ public class MachineService {
         }
 
         //下载到新的jmeter.zip到/home/freespace/jmeter.zip
-        //todo download
+        FileUtils.downloadFile1(downloaUrl, "/home/freespace/jmeter.zip");
         File file = new File("/home/freespace/jmeter.zip");
         if (file.exists()) {
             log.info("下载完成");
         }
 
         //删除之前已经解压的jmeter
-        run("rm -rf /home/freespace/pt/apache-jmeter-5.5/ &");
+        run("rm -rf /home/freespace/apache-jmeter-5.5/ &");
 
         //解压重新下载的jmeter
-        ExecUtil.unzip(file, "/home/freespace/pt/");
+        ExecUtil.unzip(file, "/home/freespace/");
 
         //修改文件执行权限
-        run("chmod +x /home/freespace/pt/apache-jmeter-5.5/bin/*");
+        run("chmod +x /home/freespace/apache-jmeter-5.5/bin/*");
     }
 }

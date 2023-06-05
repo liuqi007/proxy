@@ -1,13 +1,16 @@
 package com.free.controller;
 
 
+import cn.hutool.core.exceptions.ExceptionUtil;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
 import com.free.common.request.JobReq;
 import com.free.common.response.CommonResult;
 import com.free.common.utils.ExecUtil;
+import com.free.common.utils.FileUtils;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.File;
@@ -22,73 +25,53 @@ public class JobController {
     @Value("${JmeterHome}")
     private String jmeterHome;
 
-    @Value("${JmxHome}")
-    private String jmxHome;
-
     /**
      *
      * @param jobReq
      * @return
      */
-    @PostMapping("/downJmxFile")
+    @PostMapping("/download")
     @ResponseBody
-    public CommonResult downJmxFile(@RequestBody Map<String, String> jobReq) {
-      try{
-          String fileName = jobReq.get("fileName");
-          String fullJmxFilePath = jobReq.get("filePath")  +File.separator +fileName;
-          File file = new File(fullJmxFilePath);
-
-          if(file.exists() && file.isFile()){
-              file.delete();
-          }
-
-          //download code .......
-          //downlad(fileName, fullJmxFilePath)
-          return CommonResult.success();
-      }catch (Exception e){
-          return CommonResult.failed(e.getMessage());
-      }
-    }
-
-    @PostMapping("/downParamFile")
-    @ResponseBody
-    public CommonResult downParamFile(@RequestBody Map<String, String> jobReq) {
+    public CommonResult download(@RequestBody Map<String, Object> jobReq) {
+        log.info("jobReq:{}", jobReq);
         try{
-            final String separatorChar = "/";
-            jobReq.keySet().parallelStream().forEach(fileName->{
-                //downlad(fileName, fullJmxFilePath)
-            });
+            String fileServerUrl = (String) jobReq.get("fileServerUrl");
+            JSONObject job = JSONUtil.parseObj(jobReq.get("job"));
+            JSONObject scriptFile = JSONUtil.parseObj(jobReq.get("scriptFile"));
+            JSONArray pluginFiles = JSONUtil.parseArray(jobReq.get("pluginFiles"));
+            JSONArray paramFiles = JSONUtil.parseArray(jobReq.get("paramFiles"));
 
-            return CommonResult.success();
-        }catch (Exception e){
-            return CommonResult.failed(e.getMessage());
-        }
-    }
+            //下载脚本文件
+            String fullFilePath = fileServerUrl + scriptFile.get("path").toString().replace("/var/www/html", "");
+            Integer jobId = (Integer) job.get("id");
+            Integer testplanId = (Integer) job.get("testplanId");
+            String jmxLocalDir = jmeterHome + File.separator + "jmx" + File.separator + testplanId + File.separator + jobId;
+            String jmxLocalFile = jmxLocalDir + File.separator + fullFilePath.substring(fullFilePath.lastIndexOf("/") + 1);
+            FileUtils.downloadFile1(fullFilePath, jmxLocalFile);
 
-    @PostMapping("/downPluginFile")
-    @ResponseBody
-    public CommonResult downPluginFile(@RequestBody JobReq jobReq) {
-        try{
+            //下载插件文件
             String pluginStoreDir = jmeterHome + File.separator + "lib/ext";
-            List<String> pluginList = jobReq.getPluginList();
-            for (String plugin : pluginList) {
-                String fileName = plugin;
-                if (fileName.contains("/")) {
-                    fileName = fileName.substring(fileName.lastIndexOf("/"));
-                }
-
-                File file = null;// download code
-                if(!file.exists()){
-                    return CommonResult.failed("下载文件失败");
-                }
+            for (Object pluginFile : pluginFiles) {
+                String pluginFilePath = fileServerUrl + ((String) pluginFile).replace("/var/www/html", "");
+                String fileName = pluginFilePath.substring(pluginFilePath.lastIndexOf("/"));
+                String pluginLocalFile = pluginStoreDir + File.separator + fileName;
+                FileUtils.downloadFile1(pluginFilePath, pluginLocalFile);
             }
+
+            //下载参数文件
+            for (Object paramFile : paramFiles) {
+                String paramFilePath = fileServerUrl + ((String) paramFile).replace("/var/www/html", "");
+                String fileName = paramFilePath.substring(paramFilePath.lastIndexOf("/"));
+                String paramLocalFile = jmxLocalDir + File.separator + fileName;
+                FileUtils.downloadFile1(paramFilePath, paramLocalFile);
+            }
+
             return CommonResult.success();
         }catch (Exception e){
+            log.error(ExceptionUtil.getMessage(e));
             return CommonResult.failed(e.getMessage());
         }
     }
-
-
 
     @PostMapping("/deletePluginFile")
     @ResponseBody

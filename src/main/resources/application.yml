@@ -5,3 +5,4 @@ server:
 spring:
   profiles:
     active: @profileActive@
+JmeterHome: /home/freespace/apache-jmeter-5.5
