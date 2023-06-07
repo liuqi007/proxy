@@ -48,6 +48,7 @@ public class JobController {
             String jmxLocalDir = jmeterHome + File.separator + "jmx" + File.separator + testplanId + File.separator + jobId;
             String jmxLocalFile = jmxLocalDir + File.separator + fullFilePath.substring(fullFilePath.lastIndexOf("/") + 1);
             FileUtils.downloadFile1(fullFilePath, jmxLocalFile);
+            log.info("download jmx fullFilePath:{} jmxLocalFile:{}", fullFilePath, jmxLocalFile);
 
             //下载插件文件
             String pluginStoreDir = jmeterHome + File.separator + "lib/ext";
@@ -56,6 +57,7 @@ public class JobController {
                 String fileName = pluginFilePath.substring(pluginFilePath.lastIndexOf("/"));
                 String pluginLocalFile = pluginStoreDir + File.separator + fileName;
                 FileUtils.downloadFile1(pluginFilePath, pluginLocalFile);
+                log.info("download plugin pluginFilePath:{} pluginLocalFile:{}", pluginFilePath, pluginLocalFile);
             }
 
             //下载参数文件
@@ -64,6 +66,7 @@ public class JobController {
                 String fileName = paramFilePath.substring(paramFilePath.lastIndexOf("/"));
                 String paramLocalFile = jmxLocalDir + File.separator + fileName;
                 FileUtils.downloadFile1(paramFilePath, paramLocalFile);
+                log.info("download plugin paramFilePath:{} paramLocalFile:{}", paramFilePath, paramLocalFile);
             }
 
             return CommonResult.success();

@@ -22,7 +22,7 @@ public class MachineController {
         return CommonResult.success();
     }
 
-    @GetMapping("/restart")
+    @PostMapping("/restart")
     public CommonResult restart(@RequestBody MachineReq req) throws UnknownHostException {
         machineService.doRestart(req.getCallback());
         return CommonResult.success();

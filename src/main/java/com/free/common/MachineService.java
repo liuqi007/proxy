@@ -6,6 +6,7 @@ import cn.hutool.http.HttpUtil;
 import cn.hutool.json.JSONUtil;
 import com.free.common.utils.ExecUtil;
 import com.free.common.utils.FileUtils;
+import com.free.common.utils.IpUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +31,7 @@ public class MachineService {
 
     private static final String JMETER = "jmeter";
     private static final String AGENT = "agent";
-    private static final String STARTJMETER = "/home/liuqi/apache-jmeter-5.5/bin/jmeter_new.sh 11913 -s -j jmeter-server.log 2>&1 &";
+    private static final String STARTJMETER = "/home/freespace/apache-jmeter-5.5/bin/jmeter_new.sh 11913 -s -j jmeter-server.log 2>&1 &";
     private static final String KILLJMETER = "ps -ef|grep jmeter | grep -v grep | awk '{print $2}' | xargs kill -9";
     private static final String JMETERDIRECT = "rm -rf /home/banssss/apache5.55/ &";
     private static final String GIVENPERMISS = "chmod +x /home/liuqi/apache-jmeter-5.5/bin/*";
@@ -94,9 +95,9 @@ public class MachineService {
     public void run(String command) throws Exception{
         try{
             if (!ExecUtil.exec(command)) {
-                log.info("llllfail");
+                log.info("执行命令{}失败", command);
             } else{
-                log.info("success");
+                log.info("执行命令{}成功", command);
             }
         }catch (Exception e){
             e.printStackTrace();
@@ -109,11 +110,11 @@ public class MachineService {
 
         Map<String, String> map = new HashMap<>();
         map.put("jmeter", getJmeterStatus().get("jmeter"));
-        map.put("ip", InetAddress.getLocalHost().getHostAddress());
+        map.put("ip", IpUtil.getIpAddress());
 
         HttpRequest httpRequest = HttpUtil.createPost(url).addHeaders(h).body(JSONUtil.toJsonStr(map));
         HttpResponse res = httpRequest.execute();
-        log.info("url:{} res:{}", url, res);
+        log.info("url:{} req:{} res:{}", url, map, res);
 
     }
 
@@ -129,6 +130,7 @@ public class MachineService {
         if (jmeterFile.exists()) {
             jmeterFile.delete();
         }
+        log.info("删除/home/freespace/jmeter.zip完成");
 
         //下载到新的jmeter.zip到/home/freespace/jmeter.zip
         FileUtils.downloadFile1(downloaUrl, "/home/freespace/jmeter.zip");
@@ -139,11 +141,14 @@ public class MachineService {
 
         //删除之前已经解压的jmeter
         run("rm -rf /home/freespace/apache-jmeter-5.5/ &");
+        log.info("删除之前已经解压的jmeter完成");
 
         //解压重新下载的jmeter
         ExecUtil.unzip(file, "/home/freespace/");
+        log.info("解压jmeter完成");
 
         //修改文件执行权限
         run("chmod +x /home/freespace/apache-jmeter-5.5/bin/*");
+        log.info("修改文件执行权限完成");
     }
 }
