@@ -2,6 +2,7 @@ package com.free.controller;
 
 
 import cn.hutool.core.exceptions.ExceptionUtil;
+import cn.hutool.core.io.FileUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
@@ -83,7 +84,7 @@ public class JobController {
             String pluginStoreDir = jmeterHome + File.separator + "lib/ext";
             List<String> pluginList = jobReq.getPluginList();
             for (String plugin : pluginList) {
-               // delete from lib/ext
+                FileUtil.del(pluginStoreDir + File.separator + plugin);
             }
             return CommonResult.success();
         }catch (Exception e){
